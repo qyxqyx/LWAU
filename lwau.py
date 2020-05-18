@@ -6,6 +6,7 @@ from utils import mse, xent, conv_block, normalize
 from networks import Conv_4
 
 
+
 FLAGS = flags.FLAGS
 
 class LWML:
