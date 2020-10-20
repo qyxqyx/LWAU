@@ -16,7 +16,10 @@ class LWML:
         self.meta_lr = tf.placeholder_with_default(FLAGS.meta_lr, ())
         self.update_lr = FLAGS.update_lr
         
-        self.net = Conv_4()
+        if FLAGS.backbone == 'Conv4':
+            self.net = Conv_4()
+        else:
+            self.net = ResNet12()
 
         self.forward = self.net.forward
         self.construct_weights = self.net.construct_weights
