@@ -67,7 +67,6 @@ class TaskGenerator(object):
         """
         self.batch_size = batch_size
         self.num_samples_per_class = num_samples_per_class
-        self.num_classes = 1  # by default 1 (only relevant for classification problems)
 
         self.num_classes = config.get('num_classes', FLAGS.num_classes)
         self.img_size = config.get('img_size', (84, 84))
