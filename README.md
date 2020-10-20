@@ -1,4 +1,4 @@
-#Source code of the method LWAU shown in "Layer-Wise Adaptive Updating for Few-Shot Image Classification"
+# Source code of the method LWAU shown in "Layer-Wise Adaptive Updating for Few-Shot Image Classification"
 
 URL: https://arxiv.org/abs/2007.08129
 
