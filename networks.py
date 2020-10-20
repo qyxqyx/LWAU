@@ -7,6 +7,9 @@ FLAGS = flags.FLAGS
 
 class Conv_4(object):
     def __init__(self):
+        '''
+        Conv-4 backbone
+        '''
         self.channels = 3
         self.dim_hidden = FLAGS.base_num_filters
         self.dim_output = FLAGS.num_classes
@@ -58,6 +61,146 @@ class Conv_4(object):
 
 
 
+
+
+class ResNet12(object):
+    '''
+    resnet12 backbone
+    '''
+    def __init__(self, size, senet_flag):
+        self.channels = 3
+        self.dim_hidden = FLAGS.base_num_filters
+        self.dim_output = FLAGS.num_classes
+        self.img_size = 84
+        self.train_flag = True
+
+
+    def construct_weights(self):
+        weights = {}
+        weights1, weights2, weights3, weights4, weights5 = {}, {}, {}, {}, {}
+        k = 3
+        dtype = tf.float32
+        conv_initializer = tf.contrib.layers.xavier_initializer_conv2d(dtype=dtype)
+        fc_initializer = tf.contrib.layers.xavier_initializer(dtype=dtype)
+
+        for i in range(4):
+            block_name = str(i+1)
+            for j in ['a', 'b', 'c']:
+                var_name = block_name+'/'+j+'/conv/'+'kernel'
+                var_filters = FLAGS.base_num_filters * np.power(2, i)
+                if i == 0 and j == 'a':
+                    input_filters = 3
+                elif j == 'a':
+                    input_filters = var_filters / 2
+                else:
+                    input_filters = var_filters
+                var_shape = [3, 3, input_filters, var_filters]
+                weights[var_name] = tf.get_variable(var_name,
+                                                    var_shape,
+                                                    initializer=conv_initializer,
+                                                    dtype=dtype)
+
+
+                var_name = block_name + '/' + j + '/conv/' + 'bias'
+                var_shape = [var_filters, ]
+                weights[var_name] = tf.get_variable(var_name,
+                                                    var_shape,
+                                                    initializer=fc_initializer,
+                                                    dtype=dtype)
+
+            var_name = block_name + '/shortcut/conv/kernel'
+            var_filters = FLAGS.base_num_filters * np.power(2, i)
+            if i == 0:
+                input_filters = 3
+            else:
+                input_filters = var_filters / 2
+
+            var_shape = [1, 1, input_filters, var_filters]
+            weights[var_name] = tf.get_variable(var_name,
+                                                var_shape,
+                                                initializer=conv_initializer,
+                                                dtype=dtype)
+
+            var_name = block_name + '/shortcut/conv/bias'
+            var_shape = [var_filters, ]
+            weights[var_name] = tf.get_variable(var_name,
+                                                var_shape,
+                                                initializer=fc_initializer,
+                                                dtype=dtype)
+
+
+        weights['5/kernel'] = tf.get_variable('dense/kernel',
+                                                  [FLAGS.base_num_filters * np.power(2, 3), self.dim_output],
+                                                  initializer=fc_initializer)
+        weights['5/bias'] = tf.get_variable('dense/bias', [self.dim_output],
+                                                initializer=fc_initializer)
+
+        for key, var in weights.items():
+            if key[0] == '1':
+                weights1[key] = var
+            elif key[0] == '2':
+                weights2[key] = var
+            elif key[0] == '3':
+                weights3[key] = var
+            elif key[0] == '4':
+                weights4[key] = var
+            else:
+                weights5[key] = var
+
+
+        return weights1, weights2, weights3, weights4, weights5
+
+
+    def forward(self, inp, weights, reuse=False, scope=''):
+
+        feature = tf.reshape(inp, [-1, 84, 84, 3])
+
+        for i in range(4):
+            block_name = str(i + 1)
+
+            kernel_name = block_name + '/shortcut/conv/kernel'
+            bias_name = block_name + '/shortcut/conv/bias'
+
+            shortcut = tf.nn.convolution(feature, weights[kernel_name], padding='SAME', strides=[1,1]) + weights[bias_name]
+
+            for j in ['a', 'b']:
+                kernel_name = block_name + '/' + j + '/conv/' + 'kernel'
+                bias_name = block_name + '/' + j + '/conv/' + 'bias'
+
+                feature = tf.nn.convolution(feature, weights[kernel_name], padding='SAME', strides=[1, 1]) + \
+                           weights[bias_name]
+
+                if FLAGS.bn:
+                    feature = tf.layers.batch_normalization(feature, training=True,
+                                                            name=block_name + '/' + j + '/bn',
+                                                            trainable=FLAGS.bn_train,
+                                                            reuse=reuse)
+                feature = tf.nn.relu(feature)
+
+            kernel_name = block_name + '/c/conv/' + 'kernel'
+            bias_name = block_name + '/c/conv/' + 'bias'
+
+            feature = tf.nn.convolution(feature, weights[kernel_name], padding='SAME', strides=[1, 1]) + \
+                      weights[bias_name]
+
+            feature = feature + shortcut
+
+            if FLAGS.bn:
+                feature = tf.layers.batch_normalization(feature, training=True,
+                                                        name=block_name + '/' + j + '/bn',
+                                                        trainable=FLAGS.bn_train,
+                                                        reuse=reuse)
+            feature = tf.nn.relu(feature)
+
+            feature = tf.layers.max_pooling2d(feature, [2, 2], [2, 2], 'same')
+
+        feature = tf.reduce_mean(feature, axis=[1, 2])
+
+        if FLAGS.dropout_rate > 0:
+            feature = tf.layers.dropout(feature, FLAGS.dropout_rate, training=self.train_flag, seed=1)
+
+        fc1 = tf.matmul(feature, weights['5/kernel']) + weights['5/bias']
+        return fc1
 
 
 
