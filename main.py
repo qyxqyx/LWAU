@@ -169,10 +169,10 @@ def main():
     dim_output = task_generator.dim_output
     dim_input = task_generator.dim_input
 
-    model = LWML(dim_input, dim_output)
+    model = LWAU(dim_input, dim_output)
     if FLAGS.train :
-        model.construct_model(input_tensors=input_tensors, num_updates=FLAGS.num_updates, train=True)
-    model.construct_model(input_tensors=metaval_input_tensors, num_updates=FLAGS.test_num_updates, train=False)
+        model.construct_model(num_updates=FLAGS.num_updates, train=True)
+    model.construct_model(num_updates=FLAGS.test_num_updates, train=False)
 
     # model.summ_op = tf.summary.merge_all()
 
