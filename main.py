@@ -1,7 +1,7 @@
 import numpy as np
 import random
 import tensorflow as tf
-from lwml import LWML
+from lwau import LWAU
 from tensorflow.python.platform import flags
 import os
 from task_generator import TaskGenerator
