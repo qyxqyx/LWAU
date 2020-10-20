@@ -9,7 +9,7 @@ from networks import Conv_4, ResNet12
 
 FLAGS = flags.FLAGS
 
-class LWML:
+class LWAU:
     def __init__(self, dim_input=1, dim_output=1):
         self.dim_input = dim_input
         self.dim_output = dim_output
