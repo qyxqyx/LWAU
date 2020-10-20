@@ -53,8 +53,18 @@ def train(model, saver, sess, exp_string, resume_itr=0):
     models = {}
 
     for itr in range(resume_itr, FLAGS.metatrain_iterations):
-        feed_dict = {model.meta_lr: FLAGS.meta_lr}
-
+        if FLAGS.backbone == 'Conv4':
+            feed_dict = {model.meta_lr: FLAGS.meta_lr}
+        else:
+            lr = FLAGS.meta_lr * 0.5 ** int(itr / 15000)
+            feed_dict = {model.meta_lr: lr}
+        
+        inputa, labela, inputb, labelb = data_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=True)
+        feed_dict[model.inputa] = inputa
+        feed_dict[model.labela] = labela
+        feed_dict[model.inputb] = inputb
+        feed_dict[model.labelb] = labelb
+        
         input_tensors = [model.metatrain_op]
         input_tensors.extend([model.total_loss1, model.total_losses2[FLAGS.num_updates-1]])
         input_tensors.extend([model.total_accuracy1, model.total_accuracies2[FLAGS.num_updates-1]])
@@ -74,6 +84,12 @@ def train(model, saver, sess, exp_string, resume_itr=0):
             metaval_accuracies = []
             for _ in range(NUM_TEST_POINTS):
                 feed_dict = {}
+                inputa, labela, inputb, labelb = data_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=False)
+                feed_dict[model.inputa] = inputa
+                feed_dict[model.labela] = labela
+                feed_dict[model.inputb] = inputb
+                feed_dict[model.labelb] = labelb
+                
                 input_tensors = [[model.metaval_total_accuracy1] + model.metaval_total_accuracies2]
 
                 result = sess.run(input_tensors, feed_dict)
@@ -143,7 +159,6 @@ def test(model, sess):
 
 def main():
     FLAGS.logdir = 'logs/miniimagenet' + str(FLAGS.update_batch_size) + 'shot/'
-    # assert len(lists) >= 5, '列表元素个数小于5'
 
     if FLAGS.train == False:
         orig_meta_batch_size = FLAGS.meta_batch_size
@@ -153,23 +168,6 @@ def main():
     task_generator = TaskGenerator(FLAGS.update_batch_size+15, FLAGS.meta_batch_size)
     dim_output = task_generator.dim_output
     dim_input = task_generator.dim_input
-
-    if FLAGS.train: # only construct training model if needed
-        random.seed(5)
-        image_tensor, label_tensor = task_generator.make_data_tensor()
-        inputa = tf.slice(image_tensor, [0,0,0], [-1,FLAGS.num_classes*FLAGS.update_batch_size, -1])
-        inputb = tf.slice(image_tensor, [0,FLAGS.num_classes*FLAGS.update_batch_size, 0], [-1,-1,-1])
-        labela = tf.slice(label_tensor, [0,0,0], [-1,FLAGS.num_classes*FLAGS.update_batch_size, -1])
-        labelb = tf.slice(label_tensor, [0,FLAGS.num_classes*FLAGS.update_batch_size, 0], [-1,-1,-1])
-        input_tensors = {'inputa': inputa, 'inputb': inputb, 'labela': labela, 'labelb': labelb}
-
-    random.seed(6)
-    image_tensor, label_tensor = task_generator.make_data_tensor(train=False)
-    inputa = tf.slice(image_tensor, [0,0,0], [-1,FLAGS.num_classes*FLAGS.update_batch_size, -1])
-    inputb = tf.slice(image_tensor, [0,FLAGS.num_classes*FLAGS.update_batch_size, 0], [-1,-1,-1])
-    labela = tf.slice(label_tensor, [0,0,0], [-1,FLAGS.num_classes*FLAGS.update_batch_size, -1])
-    labelb = tf.slice(label_tensor, [0,FLAGS.num_classes*FLAGS.update_batch_size, 0], [-1,-1,-1])
-    metaval_input_tensors = {'inputa': inputa, 'inputb': inputb, 'labela': labela, 'labelb': labelb}
 
     model = LWML(dim_input, dim_output)
     if FLAGS.train :
