@@ -67,7 +67,7 @@ class ResNet12(object):
     '''
     resnet12 backbone
     '''
-    def __init__(self, size, senet_flag):
+    def __init__(self):
         self.channels = 3
         self.dim_hidden = FLAGS.base_num_filters
         self.dim_output = FLAGS.num_classes
@@ -170,11 +170,10 @@ class ResNet12(object):
                 feature = tf.nn.convolution(feature, weights[kernel_name], padding='SAME', strides=[1, 1]) + \
                            weights[bias_name]
 
-                if FLAGS.bn:
-                    feature = tf.layers.batch_normalization(feature, training=True,
-                                                            name=block_name + '/' + j + '/bn',
-                                                            trainable=FLAGS.bn_train,
-                                                            reuse=reuse)
+
+                feature = tf.layers.batch_normalization(feature, training=True,
+                                                        name=block_name + '/' + j + '/bn',
+                                                        reuse=reuse)
                 feature = tf.nn.relu(feature)
 
             kernel_name = block_name + '/c/conv/' + 'kernel'
@@ -185,11 +184,10 @@ class ResNet12(object):
 
             feature = feature + shortcut
 
-            if FLAGS.bn:
-                feature = tf.layers.batch_normalization(feature, training=True,
-                                                        name=block_name + '/' + j + '/bn',
-                                                        trainable=FLAGS.bn_train,
-                                                        reuse=reuse)
+
+            feature = tf.layers.batch_normalization(feature, training=True,
+                                                    name=block_name + '/' + j + '/bn',
+                                                    reuse=reuse)
             feature = tf.nn.relu(feature)
 
             feature = tf.layers.max_pooling2d(feature, [2, 2], [2, 2], 'same')
