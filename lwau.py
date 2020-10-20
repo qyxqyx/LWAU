@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.platform import flags
 from utils import mse, xent, conv_block, normalize
-from networks import Conv_4
+from networks import Conv_4, ResNet12
 
 
 
@@ -15,7 +15,7 @@ class LWML:
         self.dim_output = dim_output
         self.meta_lr = tf.placeholder_with_default(FLAGS.meta_lr, ())
         self.update_lr = FLAGS.update_lr
-
+        
         self.net = Conv_4()
 
         self.forward = self.net.forward
