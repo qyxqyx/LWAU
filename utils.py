@@ -8,17 +8,22 @@ from tensorflow.python.platform import flags
 FLAGS = flags.FLAGS
 
 ## Image helper
-def get_images(paths, labels, nb_samples=None, shuffle=True):
-    if nb_samples is not None:
-        sampler = lambda x: random.sample(x, nb_samples)
-    else:
-        sampler = lambda x: x
-    images = [(i, os.path.join(path, image)) \
-        for i, path in zip(labels, paths) \
-        for image in sampler(os.listdir(path))]
-    if shuffle:
-        random.shuffle(images)
-    return images
+def get_images(paths, nb_samples=None):
+    support = []
+    query = []
+    for i, path in enumerate(paths):
+        images = os.listdir(path)
+        images = [os.path.join(path, image) for image in images]
+        sampled_images = random.sample(images, nb_samples)
+
+        for j, image in enumerate(sampled_images):
+            if j < FLAGS.update_batch_size:
+                support.append((i, image))
+            else:
+                query.append((i, image))
+
+    return support, query
+
 
 ## Network helpers
 def conv_block(inp, cweight, bweight, reuse, scope, activation=tf.nn.relu, pool=True, max_pool_pad='VALID', residual=False):
