@@ -35,14 +35,19 @@ class LWML:
         self.alpha4 = tf.get_variable('alpha4', shape=[1, ], dtype=tf.float32, initializer=alpha_initializer)
         self.alpha5 = tf.get_variable('alpha5', shape=[1, ], dtype=tf.float32, initializer=alpha_initializer)
 
-
+        shape = [FLAGS.meta_batch_size, None, 84, 84, 3]
+        self.inputa = tf.placeholder(tf.float32, shape=shape)
+        shape = [FLAGS.meta_batch_size, None, 84, 84, 3]
+        self.inputb = tf.placeholder(tf.float32, shape=shape)
+        shape = [FLAGS.meta_batch_size, None, FLAGS.num_classes]
+        self.labela = tf.placeholder(tf.float32, shape=shape)
+        shape = [FLAGS.meta_batch_size, None, FLAGS.num_classes]
+        self.labelb = tf.placeholder(tf.float32, shape=shape)
+        
+        
     def construct_model(self, input_tensors=None, num_updates=1, train=True):
         # a: training data for inner gradient, b: test data for meta gradient
-
-        self.inputa = input_tensors['inputa']
-        self.inputb = input_tensors['inputb']
-        self.labela = input_tensors['labela']
-        self.labelb = input_tensors['labelb']
+        self.net.train_flag = train
 
         with tf.variable_scope('', reuse=tf.AUTO_REUSE) as training_scope:
         #with tf.variable_scope('model', reuse=None) as training_scope:
