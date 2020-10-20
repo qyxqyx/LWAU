@@ -54,7 +54,7 @@ def random_flip(img):
 
 
 
-class DataGenerator(object):
+class TaskGenerator(object):
     """
     Data Generator capable of generating batches of sinusoid or Omniglot data.
     A "class" is considered a class of omniglot digits or a particular sinusoid function.
