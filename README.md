@@ -20,7 +20,8 @@ The comparison between LWAU and MAML when their bottom layers are frozen is show
 At last, LWAU extracts sparser image representations.  
 ![](https://github.com/qyxqyx/LWAU/raw/master/representation.png)  
 
-Refer to our paper to get more detail of LWAU.  
+## Please refer to our paper to get more detail of LWAU.  
+
 If LWAU is helpful for your work, please cite our paper. Thanks!  
 
 @article{qin2020layer,  
