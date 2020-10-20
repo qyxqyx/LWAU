@@ -31,9 +31,10 @@ flags.DEFINE_bool('resume', False, 'resume training if there is a model availabl
 flags.DEFINE_bool('train', True, 'True to train, False to test.')
 flags.DEFINE_integer('test_iter', -1, 'iteration to load model (-1 for latest model)')
 flags.DEFINE_bool('test_set', False, 'Set to true to test on the the test set, False for the validation set.')
-flags.DEFINE_bool('net', False, 'whether use the data saved on the risk disk, or use the data saved on the local disk.')
 
+flags.DEFINE_bool('data_aug', False, 'whether use the data augmentation.')
 flags.DEFINE_string('backbone', 'Conv4', 'Conv4 or ResNet12 backone.')
+
 
 if FLAGS.train:
     NUM_TEST_POINTS = int(600/FLAGS.meta_batch_size)
@@ -42,10 +43,10 @@ else:
 
 
 LEN_MODELS = 50
-PRINT_INTERVAL = 5
+PRINT_INTERVAL = 50
 TEST_PRINT_INTERVAL = PRINT_INTERVAL*6
 
-def train(model, saver, sess, exp_string, resume_itr=0):
+def train(model, saver, sess, exp_string, task_generator, resume_itr=0):
     print('Done initializing, starting training.')
     print(exp_string)
     prelosses, postlosses = [], []
@@ -59,7 +60,7 @@ def train(model, saver, sess, exp_string, resume_itr=0):
             lr = FLAGS.meta_lr * 0.5 ** int(itr / 15000)
             feed_dict = {model.meta_lr: lr}
         
-        inputa, labela, inputb, labelb = data_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=True)
+        inputa, labela, inputb, labelb = task_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=True)
         feed_dict[model.inputa] = inputa
         feed_dict[model.labela] = labela
         feed_dict[model.inputb] = inputb
@@ -84,7 +85,7 @@ def train(model, saver, sess, exp_string, resume_itr=0):
             metaval_accuracies = []
             for _ in range(NUM_TEST_POINTS):
                 feed_dict = {}
-                inputa, labela, inputb, labelb = data_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=False)
+                inputa, labela, inputb, labelb = task_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=False)
                 feed_dict[model.inputa] = inputa
                 feed_dict[model.labela] = labela
                 feed_dict[model.inputb] = inputb
@@ -129,7 +130,7 @@ def train(model, saver, sess, exp_string, resume_itr=0):
     saver.save(sess, FLAGS.logdir + '/' + exp_string +  '/model' + str(itr))
 
 
-def test(model, sess):
+def test(model, sess, task_generator):
     np.random.seed(1)
     random.seed(1)
 
@@ -138,6 +139,12 @@ def test(model, sess):
     print(NUM_TEST_POINTS)
     for _ in range(NUM_TEST_POINTS):
         feed_dict = {model.meta_lr : 0.0}
+        inputa, labela, inputb, labelb = task_generator.get_data_n_tasks(FLAGS.meta_batch_size, train=False)
+        feed_dict[model.inputa] = inputa
+        feed_dict[model.labela] = labela
+        feed_dict[model.inputb] = inputb
+        feed_dict[model.labelb] = labelb
+
         result = sess.run([model.metaval_total_accuracy1] + model.metaval_total_accuracies2, feed_dict)
         metaval_accuracies.append(result)
 
@@ -210,7 +217,7 @@ def main():
             saver.restore(sess, model_file)
 
     if FLAGS.train:
-        train(model, saver, sess, exp_string, resume_itr)
+        train(model, saver, sess, exp_string, task_generator, resume_itr)
     else:
         import os
         max_accs = 0
@@ -230,7 +237,7 @@ def main():
                 model_file = FLAGS.logdir + exp_string + '/model' + str(epoch)
                 saver.restore(sess, model_file)
                 print("testing model: " + model_file)
-                acc = test(model, sess)
+                acc = test(model, sess, task_generator)
                 if acc > max_accs:
                     max_accs = acc
                     max_epoch = epoch
