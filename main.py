@@ -33,10 +33,12 @@ flags.DEFINE_integer('test_iter', -1, 'iteration to load model (-1 for latest mo
 flags.DEFINE_bool('test_set', False, 'Set to true to test on the the test set, False for the validation set.')
 flags.DEFINE_bool('net', False, 'whether use the data saved on the risk disk, or use the data saved on the local disk.')
 
+flags.DEFINE_string('backbone', 'Conv4', 'Conv4 or ResNet12 backone.')
+
 if FLAGS.train:
-    NUM_TEST_POINTS = int(60/FLAGS.meta_batch_size)
+    NUM_TEST_POINTS = int(600/FLAGS.meta_batch_size)
 else:
-    NUM_TEST_POINTS = 60
+    NUM_TEST_POINTS = 600
 
 
 LEN_MODELS = 50
