@@ -2,7 +2,7 @@
 
 URL: https://arxiv.org/abs/2007.08129
 
-LWAU is evaluated on two backbones:Conv-4 and ResNet12  
+LWAU is evaluated with two backbones:Conv-4 and ResNet12  
 
 The performances on MiniImagenet is shown as the following Table.  
 The upper part of the table shows the meta-learning based few-shot learning methods with Conv-4 backbone.  
