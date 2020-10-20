@@ -134,8 +134,8 @@ class DataGenerator(object):
         label_list = []
         for image_and_label in train_files:
             image = cv2.imread(image_and_label[1])
-
-            if train and FLAGS.data_aug:
+            
+            if train and FLAGS.data_aug and (FLAGS.backbone=='ResNet12'):
                 if random.random() < 0.6:
                     image = random_crop(image)
                 image = random_flip(image)
@@ -158,7 +158,7 @@ class DataGenerator(object):
         for image_and_label in test_files:
             image = cv2.imread(image_and_label[1])
 
-            if train and FLAGS.data_aug:
+            if train and FLAGS.data_aug and (FLAGS.backbone=='ResNet12'):
                 if random.random() < 0.6:
                     image = random_crop(image)
                 image = random_flip(image)
