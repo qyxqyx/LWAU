@@ -48,7 +48,7 @@ class LWAU:
         self.labelb = tf.placeholder(tf.float32, shape=shape)
         
         
-    def construct_model(self, input_tensors=None, num_updates=1, train=True):
+    def construct_model(self, num_updates=1, train=True):
         # a: training data for inner gradient, b: test data for meta gradient
         self.net.train_flag = train
 
