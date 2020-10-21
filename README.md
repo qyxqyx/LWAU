@@ -22,7 +22,7 @@ At last, LWAU extracts sparser image representations.
 
 ## Please refer to our paper to get more detail of LWAU.  
 
-If LWAU is helpful for your work, please cite our paper. Thanks!  
+If LWAU is helpful to your work, please cite our paper. Thanks!  
 
 @article{qin2020layer,  
   title={Layer-Wise Adaptive Updating for Few-Shot Image Classification},    
