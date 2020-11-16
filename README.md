@@ -27,7 +27,7 @@ If LWAU is helpful to your work, please cite our paper. Thanks!
 @article{qin2020layer,  
   title={Layer-Wise Adaptive Updating for Few-Shot Image Classification},    
   author={Qin, Yunxiao and Zhang, Weiguo and Wang, Zezheng and Zhao, Chenxu and Shi, Jingping},  
-  journal={arXiv preprint arXiv:2007.08129},  
+  journal={IEEE Signal Processing Letters},  
   year={2020}  
 }
 
